@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Rounds</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/sketchy.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="container mt-3" style="width: 50rem; text-align: center;">
+        <h1>Welcome to Round Master {{ user.firstname }}!</h1>
+        <a href="/users/logout" class="0mx auto">Logout</a>
+    </div>
+    <div class="card mx-5">
+        <table class="table table-hover table-dark  mt-3">
+            <thead>
+                <tr>
+                    <th>Course</th>
+                    <th>Posted By</th>
+                    <th>Date</th>
+                    <th>Round Score</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for round in rounds %}
+                <tr>
+                    <td>{{ round.coursename }}</td>
+                    <td>{{ round.user.firstname }}</td>
+                    <td>{{ round.date_played }}</td>
+                    <td>{{ round.total_score }}</td>
+                    <td>
+                        <a href="/rounds/{{ round.id }}" class="btn btn-info">View</a>
+                        {% if round.user.id == user.id %}
+                        <a href="/rounds/{{ round.id }}/edit" class="btn btn-warning">Edit</a>
+                        <form action="/rounds/{{ round.id }}/delete" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="/rounds/new" class="btn btn-info mt-3">Add a Round</a>
+    </div>
+</body>
+
+</html>

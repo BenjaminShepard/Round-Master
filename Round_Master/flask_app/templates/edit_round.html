@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Round</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/sketchy.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="mx-3 my-3">
+        <form action="/rounds/update_round" method="POST">
+            <input type="hidden" name="user_id" value="{{ user.id }}">
+            <input type="hidden" name="round_id" value="{{ round.id }}">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1>Edit {{ user.firstname }}'s round @ {{ round.coursename }}</h1>
+                <a href="/rounds/all">Home</a>
+            </div>
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-dismissible alert-warning">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <div>
+                <label for="course" class="form-label">Course:</label>
+                <input type="text" class="form-control; col-md-4" name="coursename" id="coursename" value="{{ round.coursename }}">
+            </div>
+            <div>
+                <label for="date" class="form-label">Date:</label>
+                <input type="date" class="form-control col-md-2" name="date_played" id="date" value="{{ round.date_played }}">
+            </div>
+
+            <div class="card">
+                <!-- First Row Table (Hole 1-9) -->
+                <table class="table table-hover table-dark table-striped mt-3">
+                    <thead>
+                        <tr>
+                            <th>Hole #</th>
+                            {% for hole in holes[:9] %}
+                            <th>{{ loop.index }}</th>
+                            {% endfor %}
+                            <th>OUT</th>
+                        </tr>
+                        <tr>
+                            <th>Par</th>
+                            {% for hole in holes[:9] %}
+                            <td>
+                                <select name="par{{ loop.index }}" class="form-select" id="par{{ loop.index }}" onchange="calculatePars()">
+                                    <option value="3" {% if hole.par == 3 %}selected{% endif %}>3</option>
+                                    <option value="4" {% if hole.par == 4 %}selected{% endif %}>4</option>
+                                    <option value="5" {% if hole.par == 5 %}selected{% endif %}>5</option>
+                                </select>
+                            </td>
+                            {% endfor %}
+                            <td>
+                                <input type="number" class="form-control" id="out_par" readonly>
+                            </td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Name: {{ user.firstname }} </td>
+                            {% for hole in holes[:9] %}
+                            <td><input type="number" class="form-control" name="score{{ loop.index }}" id="score{{ loop.index }}" value="{{ hole.score }}" oninput="calculateScores()"></td>
+                            {% endfor %}
+                            <td><input type="number" class="form-control" id="out_score" name="out_score" readonly></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Second Row Table (Hole 10-18) -->
+                <table class="table table-hover table-dark table-striped mt-3">
+                    <thead>
+                        <tr>
+                            <th>Hole #</th>
+                            {% for hole in holes[9:] %}
+                            <th>{{ loop.index + 10 }}</th>
+                            {% endfor %}
+                            <th>IN</th>
+                            <th>TOT</th>
+                        </tr>
+                        <tr>
+                            <th>Par</th>
+                            {% for hole in holes[9:] %}
+                            <td>
+                                <select name="par{{ loop.index + 9 }}" class="form-select" id="par{{ loop.index + 9 }}" onchange="calculatePars()">
+                                    <option value="3" {% if hole.par == 3 %}selected{% endif %}>3</option>
+                                    <option value="4" {% if hole.par == 4 %}selected{% endif %}>4</option>
+                                    <option value="5" {% if hole.par == 5 %}selected{% endif %}>5</option>
+                                </select>
+                            </td>
+                            {% endfor %}
+                            <td><input type="number" class="form-control" id="in_par" readonly></td>
+                            <td><input type="number" class="form-control" id="total_par" readonly></td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Name: {{ user.firstname }} </td>
+                            {% for hole in holes[9:] %}
+                            <td><input type="number" class="form-control" name="score{{ loop.index + 9 }}" id="score{{ loop.index + 9 }}" value="{{ hole.score }}" oninput="calculateScores()"></td>
+                            {% endfor %}
+                            <td><input type="number" class="form-control" id="in_score" name="in_score" readonly></td>
+                            <td><input type="number" class="form-control" id="total_score" name="total_score" readonly></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="d-flex align-items-center">
+                    <label for="round_score" class="form-label me-2">Round Score:</label>
+                    <input type="number" class="form-control" name="round_score" id="round_score" readonly style="max-width: 150px;">
+                </div>
+                <button type="submit" class="btn btn-primary">Update Round</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function calculatePars() {
+            let outPar = 0;
+            let inPar = 0;
+    
+
+            for (let i = 1; i <= 9; i++) {
+                let par = parseInt(document.getElementById(`par${i}`).value) || 0;
+                outPar += par;
+            }
+            document.getElementById('out_par').value = outPar;
+    
+
+            for (let i = 10; i <= 18; i++) {
+                let par = parseInt(document.getElementById(`par${i}`).value) || 0;
+                inPar += par;
+            }
+            document.getElementById('in_par').value = inPar;
+    
+
+            const totalPar = outPar + inPar;
+            document.getElementById('total_par').value = totalPar;
+        }
+    
+        function calculateScores() {
+            let outScore = 0;
+            let inScore = 0;
+    
+
+            for (let i = 1; i <= 9; i++) {
+                let score = parseInt(document.getElementById(`score${i}`).value) || 0;
+                outScore += score;
+            }
+            document.getElementById('out_score').value = outScore;
+    
+
+            for (let i = 10; i <= 18; i++) {
+                let score = parseInt(document.getElementById(`score${i}`).value) || 0;
+                inScore += score;
+            }
+            document.getElementById('in_score').value = inScore;
+    
+
+            const totalScore = outScore + inScore;
+            document.getElementById('total_score').value = totalScore;
+            document.getElementById('round_score').value = totalScore;
+        }
+    
+        window.onload = function() {
+            calculatePars();
+            calculateScores();
+    
+            for (let i = 1; i <= 18; i++) {
+                document.getElementById(`par${i}`).addEventListener('change', calculatePars);
+                document.getElementById(`score${i}`).addEventListener('input', calculateScores);
+            }
+        };
+    </script>
+</body>
+</html>
