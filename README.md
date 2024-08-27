@@ -1,2 +1,2 @@
 # Round-Master
-This is my solo project where I built a web application where users could register/login to it and post and share rounds of golf with other users.
+This is my solo project where I built a web application where users could register/login to it and post and share rounds of golf with other users. The purpose of this project is to take all of the material that I have learned over the last few months and pick my favorite, or one that I would like to work on, and combine it all together to hash out a fully functioning web application with basic CRUD features.
